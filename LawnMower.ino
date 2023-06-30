@@ -20,13 +20,6 @@
 bool motorCForward = false;
 
 
-const int motor1PWM = 5;    // PWM input for motor 1
-const int motor1A = 12;     // Motor 1 direction pin A
-const int motor1B = 14;     // Motor 1 direction pin B
-const int motor2PWM = 4;    // PWM input for motor 2
-const int motor2A = 27;     // Motor 2 direction pin A
-const int motor2B = 26;     
-
 void setupMotorControl() {
   pinMode(PMWA, OUTPUT);
   pinMode(Ain1, OUTPUT);
@@ -160,11 +153,13 @@ void notify()
 
     if (Ps3.data.analog.stick.lx > 100) {
         moveMotorAForward();
-        brakeMotorB();
+        moveMotorBBackward();
+
     }
     else if (Ps3.data.analog.stick.lx < -100) {
         moveMotorBForward();
-        brakeMotorA();
+        moveMotorABackward();
+
     }
     else {
         brakeMotorA();
