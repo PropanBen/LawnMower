@@ -1,5 +1,9 @@
 #include <Ps3Controller.h>
-// Mac Adresse ESP B8:D6:1A:34:6A:06
+// Mac Adresse ESP B0:A7:32:D7:80:B8
+
+//Get Mac Adress of ESP32
+// #include <WiFi.h>
+//Serial.println(WiFi.macAddress());
 
 // Motor Schema
 //     A ----- B
@@ -16,21 +20,22 @@
 #define Bin2 4
 
 #define PMWC 27
-#define Cin1 25
-#define Cin2 26
+#define Cin1 34
+#define Cin2 35
 
-#define PMWD 27
+#define PMWD 26
 #define Din1 12
 #define Din2 14
 
 #define PMWE 25
 #define Ein1 32
-#define Ein2 32
+#define Ein2 33
 
 
 
 #define MotorSpeed 255
 #define MowSpeed 100
+
 
 bool motorCForward = false;
 
@@ -122,16 +127,16 @@ void brakeMotorC() {
 
 // Function to move motor D forward
 void moveMotorDForward() {
-  digitalWrite(Cin1, HIGH);
-  digitalWrite(Cin2, LOW);
-  analogWrite(PMWC, MowSpeed);
+  digitalWrite(Din1, HIGH);
+  digitalWrite(Din2, LOW);
+  analogWrite(PMWD, MotorSpeed);
 }
 
 // Function to move motor D backward
 void moveMotorDBackward() {
   digitalWrite(Din1, LOW);
   digitalWrite(Din2, HIGH);
-  analogWrite(PMWD, MowSpeed);
+  analogWrite(PMWD, MotorSpeed);
 }
 
 // Function to brake motor D
@@ -146,14 +151,14 @@ void brakeMotorD() {
 void moveMotorEForward() {
   digitalWrite(Ein1, HIGH);
   digitalWrite(Ein2, LOW);
-  analogWrite(PMWE, MowSpeed);
+  analogWrite(PMWE, MotorSpeed);
 }
 
 // Function to move motor E backward
 void moveMotorEBackward() {
   digitalWrite(Ein1, LOW);
   digitalWrite(Ein2, HIGH);
-  analogWrite(PMWE, MowSpeed);
+  analogWrite(PMWE, MotorSpeed);
 }
 
 // Function to brake motor E
@@ -270,7 +275,7 @@ void setup() {
     setupMotorControl();
     Ps3.attach(notify);
     Ps3.attachOnConnect(onConnect);
-    Ps3.begin("B8:D6:1A:34:6A:06");
+    Ps3.begin("B0:A7:32:D7:80:B8");
 
 }
 
