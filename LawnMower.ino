@@ -2,7 +2,7 @@
 // Mac Adresse ESP B0:A7:32:D7:80:B8
 
 //Get Mac Adress of ESP32
-// #include <WiFi.h>
+//include <WiFi.h>
 //Serial.println(WiFi.macAddress());
 
 // Motor Schema
@@ -19,9 +19,9 @@
 #define Bin1 5
 #define Bin2 4
 
-#define PMWC 27
-#define Cin1 34
-#define Cin2 35
+#define PMWC 23 //27 
+#define Cin1 16 // 34
+#define Cin2 17 //35
 
 #define PMWD 26
 #define Din1 12
@@ -108,14 +108,14 @@ void brakeMotorB() {
 void moveMotorCForward() {
   digitalWrite(Cin1, HIGH);
   digitalWrite(Cin2, LOW);
-  analogWrite(PMWC, MowSpeed);
+  analogWrite(PMWC, MotorSpeed);
 }
 
 // Function to move motor C backward
 void moveMotorCBackward() {
   digitalWrite(Cin1, LOW);
   digitalWrite(Cin2, HIGH);
-  analogWrite(PMWC, MowSpeed);
+  analogWrite(PMWC, MotorSpeed);
 }
 
 // Function to brake motor C
@@ -271,7 +271,8 @@ void notify()
 
 
 void setup() {
-   
+
+    Serial.begin(115200);
     setupMotorControl();
     Ps3.attach(notify);
     Ps3.attachOnConnect(onConnect);
