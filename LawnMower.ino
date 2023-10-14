@@ -1,4 +1,5 @@
 #include <Ps3Controller.h>
+#include <EEPROM.h>
 // Mac Adresse ESP B0:A7:32:D7:80:B8
 
 //Get Mac Adress of ESP32
@@ -34,7 +35,7 @@
 
 
 #define MotorSpeed 255
-#define MowSpeed 100
+#define MowSpeed 10
 
 
 bool motorCForward = false;
@@ -181,6 +182,34 @@ void toggleMotorCForward() {
   }
 }
 
+void ChangeMowSpeed()
+{
+  if(MowSpeed <= 255)
+  {
+  MowSpeed += 10;
+  }
+  if(MowSpeed >= 255)
+  {
+    MowSpeed = 10;
+  }
+}
+
+void SaveMowSpeed()
+{
+  EEPROM.write(0, MowSpeed);
+}
+
+
+
+void setup() {
+
+  if(EEPROM.read(0) == 255)
+  {
+    MowSpeed 10;
+  }
+  else (MowSpeed = EEPROM.read(0);)
+}
+
 void onConnect(){
     Serial.println("Connected.");
 }
@@ -225,6 +254,16 @@ void notify()
   //Start Mower
   if( Ps3.event.button_up.triangle ){
        toggleMotorCForward();
+   }
+
+   if( Ps3.event.button_up.square )
+   {
+    ChangeMowSpeed();
+   }
+
+   if( Ps3.event.button_up.r1 )
+   {
+       SaveMowSpeed();
    }
 
 // Motor Schema
