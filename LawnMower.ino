@@ -35,7 +35,7 @@
 
 
 #define MotorSpeed 255
-#define MowSpeed 10
+int MowSpeed = EEPROM.read(0);
 
 
 bool motorCForward = false;
@@ -109,14 +109,14 @@ void brakeMotorB() {
 void moveMotorCForward() {
   digitalWrite(Cin1, HIGH);
   digitalWrite(Cin2, LOW);
-  analogWrite(PMWC, MotorSpeed);
+  analogWrite(PMWC, MowSpeed);
 }
 
 // Function to move motor C backward
 void moveMotorCBackward() {
   digitalWrite(Cin1, LOW);
   digitalWrite(Cin2, HIGH);
-  analogWrite(PMWC, MotorSpeed);
+  analogWrite(PMWC, MowSpeed);
 }
 
 // Function to brake motor C
@@ -182,16 +182,26 @@ void toggleMotorCForward() {
   }
 }
 
-void ChangeMowSpeed()
-{
-  if(MowSpeed <= 255)
-  {
-  MowSpeed += 10;
+void AddMowSpeed(int speed) {
+  if (speed<= 255) {
+     MowSpeed = (speed + 10);
   }
-  if(MowSpeed >= 255)
-  {
-    MowSpeed = 10;
+  if (speed >= 255) {
+    speed = 255;
+      MowSpeed = speed;
   }
+  analogWrite(PMWC, MowSpeed);
+}
+
+void RemoveMowSpeed(int speed) {
+  if (speed<= 255) {
+     MowSpeed = (speed - 10);
+  }
+  if (speed <= 10) {
+    speed = 10;
+      MowSpeed = speed;
+  }
+  analogWrite(PMWC, MowSpeed);
 }
 
 void SaveMowSpeed()
@@ -200,15 +210,6 @@ void SaveMowSpeed()
 }
 
 
-
-void setup() {
-
-  if(EEPROM.read(0) == 255)
-  {
-    MowSpeed 10;
-  }
-  else (MowSpeed = EEPROM.read(0);)
-}
 
 void onConnect(){
     Serial.println("Connected.");
@@ -258,12 +259,16 @@ void notify()
 
    if( Ps3.event.button_up.square )
    {
-    ChangeMowSpeed();
+    SaveMowSpeed();
    }
 
    if( Ps3.event.button_up.r1 )
    {
-       SaveMowSpeed();
+       AddMowSpeed(MowSpeed);
+   }
+    if( Ps3.event.button_up.l1 )
+   {
+       RemoveMowSpeed(MowSpeed);
    }
 
 // Motor Schema
@@ -310,6 +315,12 @@ void notify()
 
 
 void setup() {
+
+  if (EEPROM.read(0) == 255) {
+    MowSpeed = 10;
+  } else {
+    MowSpeed = EEPROM.read(0);
+  }
 
     Serial.begin(115200);
     setupMotorControl();
