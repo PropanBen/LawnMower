@@ -41,6 +41,7 @@
 #define MowSpeed 100
 #define MotorSpeed 255
 bool motorCForward = false;
+bool motorCStateChanged = false;
 
 void setupMotorControl() {
   pinMode(PMWA, OUTPUT);
@@ -117,11 +118,6 @@ void brakeMotorB() {
 
 // Function to move motor C forward
 void moveMotorCForward() {
-  /*
-  digitalWrite(Cin1, HIGH);
-  digitalWrite(Cin2, LOW);
-  analogWrite(PMWC, MowSpeed);
-  */
   for (int speed = 0; speed <= MowSpeed; speed++) {
     analogWrite(RPWM_PIN, speed);
     analogWrite(LPWM_PIN, 0);
@@ -131,11 +127,6 @@ void moveMotorCForward() {
 
 // Function to move motor C backward
 void moveMotorCBackward() {
-  /*
-  digitalWrite(Cin1, LOW);
-  digitalWrite(Cin2, HIGH);
-  analogWrite(PMWC, MowSpeed);
-  */
   for (int speed = 0; speed <= MowSpeed; speed++) {
     analogWrite(RPWM_PIN, 0);
     analogWrite(LPWM_PIN, speed);
@@ -145,11 +136,6 @@ void moveMotorCBackward() {
 
 // Function to brake motor C
 void brakeMotorC() {
-  /*
-  digitalWrite(Cin1, HIGH);
-  digitalWrite(Cin2, HIGH);
-  analogWrite(PMWC, 0);
-  */
   analogWrite(RPWM_PIN, 0);
   analogWrite(LPWM_PIN, 0);
 }
@@ -197,16 +183,16 @@ void brakeMotorE() {
 }
 
 // Function to toggle motor C between forward motion and braking
-void toggleMotorCForward() {
+void toggleMotorC() {
   if (motorCForward) {
-    moveMotorCForward();
-    Serial.println("Schneidmotor an");
-    motorCForward = false;
-  } else {
     brakeMotorC();
     Serial.println("Schneidmotor aus");
-    motorCForward = true;
+  } else {
+    moveMotorCForward();
+    Serial.println("Schneidmotor an");
   }
+  motorCForward = !motorCForward;
+  motorCStateChanged = false;
 }
 
 ControllerPtr myController = nullptr;
@@ -251,9 +237,9 @@ void processGamepad(ControllerPtr ctl) {
     moveMotorDForward();
     moveMotorEForward();
   }
-  if (ctl->y()) {
-    Serial.println("Button Dreieck");
-    toggleMotorCForward();
+  if (ctl->y() && !motorCStateChanged) {
+    motorCStateChanged = true;
+    toggleMotorC();
   }
   if (ctl->x()) {
     Serial.println("Button Viereck");
@@ -273,14 +259,17 @@ void processGamepad(ControllerPtr ctl) {
     moveMotorDForward();
     moveMotorBBackward();
     moveMotorEBackward();
+ 
   } else if (axisX < -500) {
     turning = true;
     Serial.println("Links");
+
     moveMotorBForward();
     moveMotorEForward();
     moveMotorABackward();
     moveMotorDBackward();
   }
+
 
   if (!movingForwardOrBackward && !turning) {
     brakeMotorA();
