@@ -11,7 +11,6 @@
 //       | C |     
 //     D ----- E
 
-
 #define PMWA 22
 #define Ain1 21
 #define Ain2 19
@@ -39,10 +38,9 @@
 #define Ein1 32
 #define Ein2 33
 
-#define MowSpeed 255
+#define MowSpeed 100
 #define MotorSpeed 255
 bool motorCForward = false;
-bool moving = false;
 
 void setupMotorControl() {
   pinMode(PMWA, OUTPUT);
@@ -73,8 +71,6 @@ void setupMotorControl() {
   pinMode(PMWE, OUTPUT);
   pinMode(Ein1, OUTPUT);
   pinMode(Ein2, OUTPUT);
-
-
 }
 
 // Function to move motor A forward
@@ -102,7 +98,7 @@ void brakeMotorA() {
 void moveMotorBForward() {
   digitalWrite(Bin1, HIGH);
   digitalWrite(Bin2, LOW);
-  analogWrite(PMWB,MotorSpeed);
+  analogWrite(PMWB, MotorSpeed);
 }
 
 // Function to move motor B backward
@@ -121,39 +117,34 @@ void brakeMotorB() {
 
 // Function to move motor C forward
 void moveMotorCForward() {
-
   /*
   digitalWrite(Cin1, HIGH);
   digitalWrite(Cin2, LOW);
   analogWrite(PMWC, MowSpeed);
   */
-for (int speed = 0; speed <= MowSpeed; speed++) {
+  for (int speed = 0; speed <= MowSpeed; speed++) {
     analogWrite(RPWM_PIN, speed);
     analogWrite(LPWM_PIN, 0);
-    delay(50); 
+    delay(100); 
   }
-
 }
 
 // Function to move motor C backward
 void moveMotorCBackward() {
-
   /*
   digitalWrite(Cin1, LOW);
   digitalWrite(Cin2, HIGH);
   analogWrite(PMWC, MowSpeed);
   */
-for (int speed = 0; speed <= MowSpeed; speed++) {
+  for (int speed = 0; speed <= MowSpeed; speed++) {
     analogWrite(RPWM_PIN, 0);
     analogWrite(LPWM_PIN, speed);
-    delay(50); 
+    delay(100); 
   }
-
 }
 
 // Function to brake motor C
 void brakeMotorC() {
-
   /*
   digitalWrite(Cin1, HIGH);
   digitalWrite(Cin2, HIGH);
@@ -183,7 +174,6 @@ void brakeMotorD() {
   digitalWrite(Din2, HIGH);
   analogWrite(PMWD, 0);
 }
-
 
 // Function to move motor E forward
 void moveMotorEForward() {
@@ -219,108 +209,102 @@ void toggleMotorCForward() {
   }
 }
 
-
-
-
-
 ControllerPtr myController = nullptr;
 
 // This callback gets called any time a new gamepad is connected.
 void onConnectedController(ControllerPtr ctl) {
-    if (myController == nullptr) {
-        Serial.println("CALLBACK: Controller is connected");
-        ControllerProperties properties = ctl->getProperties();
-        Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id, properties.product_id);
-        myController = ctl;
-    } else {
-        Serial.println("CALLBACK: Controller connected, but already in use");
-    }
+  if (myController == nullptr) {
+    Serial.println("CALLBACK: Controller is connected");
+    ControllerProperties properties = ctl->getProperties();
+    Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id, properties.product_id);
+    myController = ctl;
+  } else {
+    Serial.println("CALLBACK: Controller connected, but already in use");
+  }
 }
 
 void onDisconnectedController(ControllerPtr ctl) {
-    if (myController == ctl) {
-        Serial.println("CALLBACK: Controller disconnected");
-        myController = nullptr;
-    } else {
-        Serial.println("CALLBACK: Controller disconnected, but not the active one");
-    }
+  if (myController == ctl) {
+    Serial.println("CALLBACK: Controller disconnected");
+    myController = nullptr;
+  } else {
+    Serial.println("CALLBACK: Controller disconnected, but not the active one");
+  }
 }
 
 void processGamepad(ControllerPtr ctl) {
-    if (ctl->a()) {
-       moving = true;
-       Serial.println("Button X");
-       moveMotorABackward();
-       moveMotorBBackward();
-       moveMotorDBackward();
-       moveMotorEBackward();
-    }
-    if (ctl->b()) {
-      moving = true;
-       moveMotorAForward();
-       moveMotorBForward();
-       moveMotorDForward();
-       moveMotorEForward();
-    } 
-      
-    
-    if (ctl->y()) {
-        Serial.println("Button Dreieck");
-         toggleMotorCForward();
+  bool movingForwardOrBackward = false;
+  bool turning = false;
 
-    }
-    if (ctl->x()) {
-        Serial.println("Button Viereck");
-       brakeMotorA();
-       brakeMotorB();
-       brakeMotorD();
-       brakeMotorE();
-    }
+  if (ctl->a()) {
+    movingForwardOrBackward = true;
+    Serial.println("Button X");
+    moveMotorABackward();
+    moveMotorBBackward();
+    moveMotorDBackward();
+    moveMotorEBackward();
+  }
+  if (ctl->b()) {
+    movingForwardOrBackward = true;
+    moveMotorAForward();
+    moveMotorBForward();
+    moveMotorDForward();
+    moveMotorEForward();
+  }
+  if (ctl->y()) {
+    Serial.println("Button Dreieck");
+    toggleMotorCForward();
+  }
+  if (ctl->x()) {
+    Serial.println("Button Viereck");
+    brakeMotorA();
+    brakeMotorB();
+    brakeMotorD();
+    brakeMotorE();
+  }
+  
+  int16_t axisX = ctl->axisX();
+  Serial.printf("Left Axis X: %d\n", axisX);
 
-    int16_t axisX = ctl->axisX();
-    Serial.printf("Left Axis X: %d\n", axisX);
+  if (axisX > 500) {
+    turning = true;
+    Serial.println("Rechts");
+    moveMotorAForward();
+    moveMotorDForward();
+    moveMotorBBackward();
+    moveMotorEBackward();
+  } else if (axisX < -500) {
+    turning = true;
+    Serial.println("Links");
+    moveMotorBForward();
+    moveMotorEForward();
+    moveMotorABackward();
+    moveMotorDBackward();
+  }
 
-    if (axisX > 500) {
-        Serial.println("Rechts");
-        moving = true;
-        moveMotorBForward();
-        moveMotorEForward();
-        moveMotorABackward();
-        moveMotorDBackward();
-
-    } else if (axisX < -500) {
-         moving = true;
-        Serial.println("Links");
-        moveMotorAForward();
-        moveMotorDForward();
-        moveMotorBBackward();
-        moveMotorEBackward();
-    }
-
-       if(moving == false)
-       {
-       brakeMotorA();
-       brakeMotorB();
-       brakeMotorD();
-       brakeMotorE();
-       }
+  if (!movingForwardOrBackward && !turning) {
+    brakeMotorA();
+    brakeMotorB();
+    brakeMotorD();
+    brakeMotorE();
+  }
 }
 
 void setup() {
-    Serial.begin(115200);
-    setupMotorControl(); 
-    Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
-    const uint8_t* addr = BP32.localBdAddress();
-    Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+  Serial.begin(115200);
+  setupMotorControl(); 
+  Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
+  const uint8_t* addr = BP32.localBdAddress();
+  Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 
-    BP32.setup(&onConnectedController, &onDisconnectedController);
-    BP32.forgetBluetoothKeys();
-    BP32.enableVirtualDevice(false);
+  BP32.setup(&onConnectedController, &onDisconnectedController);
+  BP32.forgetBluetoothKeys();
+  BP32.enableVirtualDevice(false);
 }
 
 void loop() {
-    if (BP32.update() && myController && myController->isConnected() && myController->hasData() && myController->isGamepad()) {
-        processGamepad(myController);
-    }
-    delay(150);
+  if (BP32.update() && myController && myController->isConnected() && myController->hasData() && myController->isGamepad()) {
+    processGamepad(myController);
+  }
+  delay(150);
 }
